@@ -1,1 +1,2 @@
-# scientificpython
+# Energy communities:
+This project aims to collect data on energy communities from Germany, Denmark, and the Netherlands. By initiating searches in the national firm registries of the countries, putting search words connected to energy and specifying the legal form of the firm (cooperative, limited partnership, association) the date of founding and the name of the firm is collected, along with the legal form, country, and the type of energy they produce. The goal is to build a dataset mapping out these energy communities in the three countries specified. 
