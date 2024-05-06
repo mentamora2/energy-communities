@@ -4,3 +4,13 @@ This project aims to collect data on energy communities from Germany, Denmark, a
 The German dataset is composed of cooperatives and limited partnerships in the energy industry found on the German firm registry website: https://bedrijvenmonitor.info/branche/bedrijven-in-de-branche-energie-productie-en-distributie?page=1 
 The code is provided for cooperatives in Germany. For collecting data on limited partnerships, the same code was run with the search modified from cooperatives to limited partnerships. 
 Data on energy communities in Denmark and the Netherlands was downloaded manually from the websites https://bedrijvenmonitor.info/branche/bedrijven-in-de-branche-energie-productie-en-distributie?page=1 for the Netherlands and https://businessindenmark.virk.dk/ for Denmark. 
+
+For Germany, the following search words were used to find companies in the energy industry: Energie, Bürgerenergie, Energiegenossenschaft, Wasserkraft, Windkraft, Elektrizitätsversorgung, Energieversorgung, Strom, Solarstrom, Sonnenstrom, Kraftwerk, Windenergie, Windpark, Solarpark, PV, Photovoltaik, Wasserkraft
+On the Dutch and Danish websites, the energy industry could be selected as a filter in the search, hence, these search words were not needed. According to regulations for energy communities in each country, the following legal forms were considered: 
+    Germany: Limited liability companies and cooperatives
+    Denmark: Cooperatives and partnership (where under ownership this is written: The real owner cannot be identified or found,
+the board is used as the real owner ("Reel ejer kan ikke identificeres eller findes ikke, ledelsen
+indsat som reel ejer")
+    Netherlands: Cooperatives and associations. 
+
+
