@@ -1,0 +1,284 @@
+---
+title: "Untitled"
+author: "Menta Móra"
+date: "2024-05-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+df <- Denmark.energy.communities
+df2 <- Denmark.agri.food.coops
+
+df$date <- dmy(df$Startdato)
+df$year <- as.integer(year(df$date))
+
+df <- df %>%
+  group_by(year) %>%
+  mutate(ec_count = n())
+  
+df <- distinct(df, year, .keep_all = TRUE)
+df <- df %>% arrange(year)
+
+library(lubridate)
+df2$date <- dmy(df2$Startdato)
+
+df2$year <- as.integer(year(df2$date))
+
+df2 <- df2 %>%
+  group_by(year) %>%
+  mutate(agri_coop_count = n())
+
+df2 <- distinct(df2, year, .keep_all = TRUE)
+df2 <- df2 %>% arrange(year)
+
+merged <- merge(df, df2, by = "year", all = TRUE)
+
+merged <- select(merged, year, ec_count, agri_coop_count)
+
+merged$ec_count[is.na(merged$ec_count)] <- 0
+merged$agri_coop_count[is.na(merged$agri_coop_count)] <- 0
+
+ggplot(merged[6:59,]) +
+  geom_line(aes(x = year,
+                y = ec_count), linetype = "solid") +
+  geom_line(aes(x = year,
+                y = agri_coop_count), linetype = "dashed") +
+  geom_vline(xintercept = 1982,
+             linetype = "dotted") +
+  geom_vline(xintercept = 1992,
+             linetype = "dotted")
+
+ggplot(merged[6:20,]) +
+  geom_line(aes(x = year,
+                y = ec_count), linetype = "solid") +
+  geom_line(aes(x = year,
+                y = agri_coop_count), linetype = "dashed") +
+  geom_vline(xintercept = 1985,
+              linetype = "dotted")
+              
+ggplot(merged[6:20,]) + geom_line(aes(x = year, y = ec_count - agri_coop_count))
+
+ggplot(merged[21:27,]) +
+  geom_line(aes(x = year,
+                y = ec_count),
+            linetype = "solid") +
+  geom_line(aes(x = year,
+                y = agri_coop_count),
+            linetype = "dashed") +
+  geom_line(aes(x = year,
+                y = agri_coop_count + 8),
+            linetype = "dotted") +
+  geom_line(aes(x = year,
+                y = agri_coop_count - 4.8), linetype = "dotted")
+                
+ggplot(merged[21:27,]) +
+  geom_line(aes(x = year,
+                y = ec_count - agri_coop_count - 8), linetype = "solid") +
+  geom_line(aes(x = year,
+                y = ec_count - agri_coop_count + 4.8),
+            linetype = "dashed") +
+  geom_hline(yintercept = 0,
+             linetype = "dotted")
+             
+merged_ts <- ts(merged[2:3], start = 1970, end = 2024)
+merged_ts2 <- window(merged_ts, start = 1970, end = 1985)
+head(merged_ts2)  
+
+merged_ts2_d <- diff(merged_ts2)
+diff_EC_AC <- merged_ts2_d[,1] - merged_ts2_d[,2]
+
+library(ggfortify)
+autoplot(abs(diff_EC_AC))
+
+quantile(abs(diff_EC_AC), probs = c(0,0.25,0.5,0.75,1))
+delta_0.75 <- quantile(abs(diff_EC_AC),
+probs = c(0.75)) 
+delta_0.75
+
+merged_ts3 <- window(merged_ts, start = 1986, end = 1992)
+
+library(sandwich)
+library(lmtest)
+
+
+TE_strong <- merged_ts3[,1] - 4 - merged_ts3[,2] + 0
+robust_se <- sqrt(diag(vcovHC(lm(diff_EC_AC ~ 1))))
+
+TE_lb <- TE_strong - delta_0.75*robust_se
+TE_ub <- TE_strong + delta_0.75*robust_se
+merged_eff <- cbind(TE_lb, TE_strong, TE_ub)
+merged_eff <- round(merged_eff,1)
+merged_eff_d <- data.frame(year = 1986:1992, merged_eff)
+
+library(xtable)
+teff <- xtable(merged_eff_d,
+               caption = "Treatment Effect")
+print(teff, caption.placement = "top")
+
+autoplot(merged_eff, facets = F) +
+  geom_hline(yintercept = 0,
+             linetype = "dotted")
+             
+#estimating the effect of the 1992 intervention             
+
+ggplot(merged[6:59,]) +
+  geom_line(aes(x = year,
+                y = ec_count), linetype = "solid") +
+  geom_line(aes(x = year,
+                y = agri_coop_count), linetype = "dashed") +
+  geom_vline(xintercept = 1982,
+             linetype = "dotted") +
+  geom_vline(xintercept = 1992,
+             linetype = "dotted")
+
+ggplot(merged[6:27,]) +
+  geom_line(aes(x = year,
+                y = ec_count), linetype = "solid") +
+  geom_line(aes(x = year,
+                y = agri_coop_count), linetype = "dashed") +
+  geom_vline(xintercept = 1992,
+              linetype = "dotted")
+              
+ggplot(merged[6:27,]) + geom_line(aes(x = year, y = ec_count - agri_coop_count))
+
+ggplot(merged[27:34,]) +
+  geom_line(aes(x = year,
+                y = ec_count),
+            linetype = "solid") +
+  geom_line(aes(x = year,
+                y = agri_coop_count),
+            linetype = "dashed") +
+  geom_line(aes(x = year,
+                y = agri_coop_count + 41),
+            linetype = "dotted") +
+  geom_line(aes(x = year,
+                y = agri_coop_count - 8), linetype = "dotted")
+                
+ggplot(merged[27:34,]) +
+  geom_line(aes(x = year,
+                y = ec_count - agri_coop_count - 41), linetype = "solid") +
+  geom_line(aes(x = year,
+                y = ec_count - agri_coop_count + 8),
+            linetype = "dashed") +
+  geom_hline(yintercept = 0,
+             linetype = "dotted")
+             
+merged_ts <- ts(merged[2:3], start = 1970, end = 2024)
+merged_ts4 <- window(merged_ts, start = 1986, end = 1992)
+head(merged_ts4)  
+
+merged_ts4_d <- diff(merged_ts4)
+diff_EC_AC2 <- merged_ts4_d[,1] - merged_ts4_d[,2]
+
+autoplot(abs(diff_EC_AC2))
+
+quantile(abs(diff_EC_AC2), probs = c(0,0.25,0.5,0.75,1))
+delta_0.75 <- quantile(abs(diff_EC_AC2),
+probs = c(0.75)) 
+delta_0.75
+
+merged_ts5 <- window(merged_ts, start = 1993, end = 1999)
+
+
+TE_strong2 <- merged_ts5[,1] - 43 - merged_ts5[,2] + 1
+robust_se2 <- sqrt(diag(vcovHC(lm(diff_EC_AC2 ~ 1))))
+
+TE_lb2 <- TE_strong2 - delta_0.75*robust_se2
+TE_ub2 <- TE_strong2 + delta_0.75*robust_se2
+merged_eff2 <- cbind(TE_lb2, TE_strong2, TE_ub2)
+merged_eff2 <- round(merged_eff2,1)
+merged_eff2_d <- data.frame(year = 1993:1999, merged_eff2)
+
+library(xtable)
+teff2 <- xtable(merged_eff2_d,
+               caption = "Treatment Effect")
+print(teff2, caption.placement = "top")
+
+autoplot(merged_eff2, facets = F) +
+  geom_hline(yintercept = 0,
+             linetype = "dotted")           
+
+
+#impact of policies introduced in 1999
+
+ggplot(merged[6:59,]) +
+  geom_line(aes(x = year,
+                y = ec_count), linetype = "solid") +
+  geom_line(aes(x = year,
+                y = agri_coop_count), linetype = "dashed") +
+  geom_vline(xintercept = 1999,
+             linetype = "dotted") +
+
+
+ggplot(merged[6:27,]) +
+  geom_line(aes(x = year,
+                y = ec_count), linetype = "solid") +
+  geom_line(aes(x = year,
+                y = agri_coop_count), linetype = "dashed") +
+  geom_vline(xintercept = 1992,
+              linetype = "dotted")
+              
+ggplot(merged[28:34,]) + geom_line(aes(x = year, y = ec_count - agri_coop_count))
+
+ggplot(merged[34:59,]) +
+  geom_line(aes(x = year,
+                y = ec_count),
+            linetype = "solid") +
+  geom_line(aes(x = year,
+                y = agri_coop_count),
+            linetype = "dashed") +
+  geom_line(aes(x = year,
+                y = agri_coop_count + 70),
+            linetype = "dotted") +
+  geom_line(aes(x = year,
+                y = agri_coop_count + 46), linetype = "dotted")
+                
+ggplot(merged[34:59,]) +
+  geom_line(aes(x = year,
+                y = ec_count - agri_coop_count + 70), linetype = "solid") +
+  geom_line(aes(x = year,
+                y = ec_count - agri_coop_count + 46),
+            linetype = "dashed") +
+  geom_hline(yintercept = 0,
+             linetype = "dotted")
+             
+merged_ts <- ts(merged[2:3], start = 1970, end = 2024)
+merged_ts4 <- window(merged_ts, start = 1993, end = 1999)
+head(merged_ts4)  
+
+merged_ts4_d <- diff(merged_ts4)
+diff_EC_AC2 <- merged_ts4_d[,1] - merged_ts4_d[,2]
+
+autoplot(abs(diff_EC_AC2))
+
+quantile(abs(diff_EC_AC2), probs = c(0,0.25,0.5,0.75,1))
+delta_0.75 <- quantile(abs(diff_EC_AC2),
+probs = c(0.75)) 
+delta_0.75
+
+merged_ts5 <- window(merged_ts, start = 2000, end = 2024)
+
+
+TE_strong2 <- merged_ts5[,1] - 54 - merged_ts5[,2] + 5
+robust_se2 <- sqrt(diag(vcovHC(lm(diff_EC_AC2 ~ 1))))
+
+TE_lb2 <- TE_strong2 - delta_0.75*robust_se2
+TE_ub2 <- TE_strong2 + delta_0.75*robust_se2
+merged_eff2 <- cbind(TE_lb2, TE_strong2, TE_ub2)
+merged_eff2 <- round(merged_eff2,1)
+merged_eff2_d <- data.frame(year = 2000:2024, merged_eff2)
+
+library(xtable)
+teff2 <- xtable(merged_eff2_d,
+               caption = "Treatment Effect")
+print(teff2, caption.placement = "top")
+
+autoplot(merged_eff2, facets = F) +
+  geom_hline(yintercept = 0,
+             linetype = "dotted")    
+
