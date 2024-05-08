@@ -1,0 +1,178 @@
+---
+title: "Untitled"
+author: "Menta Móra"
+date: "2024-05-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(ggfortify)
+
+library(lubridate)
+df2 <- German.agri_food_coops.
+
+df2$date <- dmy(df2$date)
+df2$year <- as.integer(year(df2$date))
+
+#creating a new variable 'agri_coop_count' which counts the number of new energy communities founded in each year  
+df2 <- df2 %>%
+  group_by(year) %>%
+  mutate(agri_coop_count = n())
+  
+  
+df2 <- distinct(df2, year, .keep_all = TRUE)
+df2 <- df2 %>% arrange(year)
+
+
+df2$agri_coop_count[is.na(df2$agri_coop_count)] <- 0
+df <- germany_ec_cumulative
+
+merged <- merge(df, df2, by = "year", all = TRUE)
+
+merged <- select(merged, year, ec_count, agri_coop_count)
+
+merged$ec_count[is.na(merged$ec_count)] <- 0
+merged$agri_coop_count[is.na(merged$agri_coop_count)] <- 0
+
+ggplot(merged) +
+  geom_line(aes(x = year,
+                y = ec_count), linetype = "solid") +
+  geom_line(aes(x = year,
+                y = agri_coop_count), linetype = "dashed") +
+  geom_vline(xintercept = 2018,
+             linetype = "dotted") +
+  geom_vline(xintercept = 2014,
+            linetype = "dotted")
+            
+ggplot(merged[69:89,]) + geom_line(aes(x = year, y = ec_count - agri_coop_count))
+
+ggplot(merged[90:102,]) +
+  geom_line(aes(x = year,
+                y = ec_count),
+            linetype = "solid") +
+  geom_line(aes(x = year,
+                y = agri_coop_count),
+            linetype = "dashed") +
+  geom_line(aes(x = year,
+                y = agri_coop_count + 0),
+            linetype = "dotted") +
+  geom_line(aes(x = year,
+                y = agri_coop_count - 69), linetype = "dotted")
+                
+                
+                
+ggplot(merged[90:102,]) +
+  geom_line(aes(x = year,
+                y = ec_count - agri_coop_count - 0), linetype = "solid") +
+  geom_line(aes(x = year,
+                y = ec_count - agri_coop_count + 69),
+            linetype = "dashed") +
+  geom_hline(yintercept = 0,
+             linetype = "dotted")
+             
+             
+merged_ts <- ts(merged[2:3], start = 1970, end = 2013)
+merged_ts2 <- window(merged_ts, start = 1970, end = 2000)
+head(merged_ts2)
+
+merged_ts2_d <- diff(merged_ts2)
+diff_EC_AG <- merged_ts2_d[,1] - merged_ts2_d[,2]
+
+quantile(abs(diff_EC_AG), probs = c(0,0.25,0.5,0.75,1))
+## 0% 25% 50% 75% 100%
+## 0.070 0.295 0.380 1.155 2.330 
+delta_0.75 <- quantile(abs(diff_EC_AG),
+probs = c(0.75)) 
+delta_0.75
+## 75% ## 1.155
+
+
+merged_ts3 <- window(merged_ts, start = 2001, end = 2013)
+
+
+TE_strong <- merged_ts3[,1] - 0 - merged_ts3[,2] + 2
+
+TE_lb <- TE_strong - delta_0.75
+TE_ub <- TE_strong + delta_0.75
+merged_eff <- cbind(TE_lb, TE_strong, TE_ub)
+merged_eff <- round(merged_eff,1)
+merged_eff_d <- data.frame(year = 2001:2013, merged_eff)
+
+library(xtable)
+teff <- xtable(merged_eff_d,
+               caption = "Treatment effect with strong difference- in-difference assumption, and lower and upper bound DID assumption.")
+print(teff, caption.placement = "top")
+
+autoplot(merged_eff, facets = F) +
+  geom_hline(yintercept = 0,
+             linetype = "dotted")
+             
+             
+ggplot(merged[69:102,]) + geom_line(aes(x = year, y = ec_count - agri_coop_count))
+
+ggplot(merged[103:107,]) +
+  geom_line(aes(x = year,
+                y = ec_count),
+            linetype = "solid") +
+  geom_line(aes(x = year,
+                y = agri_coop_count),
+            linetype = "dashed") +
+  geom_line(aes(x = year,
+                y = agri_coop_count + 350),
+            linetype = "dotted") +
+  geom_line(aes(x = year,
+                y = agri_coop_count - 52), linetype = "dotted")
+
+ggplot(merged[103:107,]) +
+  geom_line(aes(x = year,
+                y = ec_count - agri_coop_count - 350), linetype = "solid") +
+  geom_line(aes(x = year,
+                y = ec_count - agri_coop_count + 52),
+            linetype = "dashed") +
+  geom_hline(yintercept = 0,
+             linetype = "dotted")
+             
+merged_ts <- ts(merged[2:3], start = 2001, end = 2024)
+merged_ts4 <- window(merged_ts, start = 2001, end = 2013)
+head(merged_ts4)
+
+merged_ts4_d <- diff(merged_ts4)
+diff_EC_AG2 <- merged_ts4_d[,1] - merged_ts4_d[,2]
+
+quantile(abs(diff_EC_AG2), probs = c(0,0.25,0.5,0.75,1))
+## 0% 25% 50% 75% 100%
+## 0.070 0.295 0.380 1.155 2.330 
+delta_0.75 <- quantile(abs(diff_EC_AG2),
+probs = c(0.75)) 
+delta_0.75
+## 75% ## 1.155
+```
+
+merged_ts5 <- window(merged_ts, start = 2014, end = 2024)
+
+
+TE_strong2 <- merged_ts5[,1] - 147 - merged_ts5[,2] + 1
+
+TE_lb2 <- TE_strong2 - delta_0.75
+TE_ub2 <- TE_strong2 + delta_0.75
+merged_eff2 <- cbind(TE_lb2, TE_strong2, TE_ub2)
+merged_eff2 <- round(merged_eff2,1)
+merged_eff2_d <- data.frame(year = 2014:2024, merged_eff2)
+
+teff2 <- xtable(merged_eff_d2,
+               caption = "Treatment effect with strong difference- in-difference assumption, and lower and upper bound DID assumption.")
+print(teff2, caption.placement = "top")
+
+autoplot(merged_eff2, facets = F) +
+  geom_hline(yintercept = 0,
+             linetype = "dotted")
+
+             
