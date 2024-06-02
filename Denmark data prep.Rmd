@@ -1,0 +1,46 @@
+---
+title: "Untitled"
+author: "Menta Móra"
+date: "2024-05-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+df <- Denmark.energy.communities
+df2 <- Denmark.agri.food.coops
+
+df$date <- dmy(df$Startdato)
+df$year <- as.integer(year(df$date))
+
+df <- df %>%
+  group_by(year) %>%
+  mutate(ec_count = n())
+  
+df <- distinct(df, year, .keep_all = TRUE)
+df <- df %>% arrange(year)
+
+library(lubridate)
+df2$date <- dmy(df2$Startdato)
+
+df2$year <- as.integer(year(df2$date))
+
+df2 <- df2 %>%
+  group_by(year) %>%
+  mutate(agri_coop_count = n())
+
+df2 <- distinct(df2, year, .keep_all = TRUE)
+df2 <- df2 %>% arrange(year)
+
+merged <- merge(df, df2, by = "year", all = TRUE)
+
+merged <- select(merged, year, ec_count, agri_coop_count)
+
+merged$ec_count[is.na(merged$ec_count)] <- 0
+merged$agri_coop_count[is.na(merged$agri_coop_count)] <- 0
+
+
