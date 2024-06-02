@@ -1,0 +1,44 @@
+---
+title: "Germany data prep"
+author: "Menta Móra"
+date: "2024-05-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(ggfortify)
+
+df <- German.energiecommunities
+
+#creating a new variable 'year'
+df$date <- dmy(df$Date)
+df$year <- as.integer(year(df$date))
+
+#creating a new variable 'ec_count' which counts the number of new energy communities founded in each year  
+df <- df %>%
+  group_by(year) %>%
+  mutate(ec_count = n())
+  
+  
+df <- distinct(df, year, .keep_all = TRUE)
+df <- df %>% arrange(year)
+
+
+df$ec_count[is.na(df$ec_count)] <- 0
+
+df <- select(df, year, ec_count)
+
+ggplot(df) +
+  geom_line(aes(x = year,
+                y = ec_count), linetype = "solid") +
+  geom_vline(xintercept = 2000,
+             linetype = "dotted")
+
