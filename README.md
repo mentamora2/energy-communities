@@ -1,5 +1,7 @@
 # Energy communities:
-This project aims to collect data on energy communities from Germany, Denmark, and the Netherlands. By initiating searches in the national firm registries of the countries, putting search words connected to energy and specifying the legal form of the firm (cooperative, limited partnership, association) the date of founding and the name of the firm is collected, along with the legal form, country, and the type of energy they produce. The goal is to build a dataset mapping out these energy communities in the three countries specified. 
+This project aims to collect data on energy communities from Germany, Denmark, and the Netherlands, then estimate the treatment effect associated with selected policy interventions in these countries.
+
+By initiating searches in the national firm registries of the countries, putting search words connected to energy and specifying the legal form of the firm (cooperative, limited partnership, association) the date of founding and the name of the firm is collected, along with the legal form, country, and the type of energy they produce. The goal is to build a dataset mapping out these energy communities in the three countries specified. 
 
 The German dataset is composed of cooperatives and limited partnerships in the energy industry found on the German firm registry website:  https://www.unternehmensregister.de/ureg/registerPortal.html;jsessionid=5E900DEAFF9D2FB43B6DBDAC53C058F8.web04-1
 The code is provided for cooperatives in Germany. For collecting data on limited partnerships, the same code was run with the search modified from cooperatives to limited partnerships. 
